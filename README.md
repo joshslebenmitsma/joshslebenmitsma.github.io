@@ -107,7 +107,7 @@
          Ohne Bild werden die Initialen angezeigt. -->
     <div class="avatar">
       <span>JK</span>
-      <img src="PHOTO-2026-11-03-20-09-43.jpg" alt="Joshua-Liam Kiesch" onerror="this.remove()">
+      <img src="test3.jpg" alt="Joshua-Liam Kiesch" onerror="this.remove()">
     </div>
 
     <h1>Joshua-Liam Kiesch</h1>

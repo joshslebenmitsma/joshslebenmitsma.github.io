@@ -60,7 +60,7 @@
       box-shadow: var(--shadow);
     }
     .avatar > * { grid-area: 1 / 1; }
-    .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 0%; display: block; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
 
     h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -.01em; }
     .tagline { margin-top: 6px; color: var(--muted); font-size: 1rem; }

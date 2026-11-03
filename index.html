@@ -7,6 +7,20 @@
   <meta name="description" content="Alle Links von Joshua-Liam Kiesch an einem Ort.">
   <meta name="theme-color" content="#f6f1e9" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c161b" media="(prefers-color-scheme: dark)">
+  <script>
+    // Die gespeicherte Auswahl vor dem ersten Zeichnen der Seite anwenden.
+    (() => {
+      try {
+        const theme = localStorage.getItem('josh-linktree-theme');
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.dataset.theme = theme;
+          document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+            meta.content = theme === 'dark' ? '#0c161b' : '#f6f1e9';
+          });
+        }
+      } catch { /* Ohne lokalen Speicher bleibt die Systemeinstellung aktiv. */ }
+    })();
+  </script>
   <style>
     :root {
       color-scheme: light;
@@ -22,7 +36,7 @@
       --shadow: 2px 3px 0 #d9d1c4;
     }
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme]) {
         color-scheme: dark;
         --bg: #0c161b;
         --text: #eef6f5;
@@ -35,6 +49,19 @@
         --focus: #ff9a7d;
         --shadow: 2px 3px 0 #243c41;
       }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0c161b;
+      --text: #eef6f5;
+      --muted: #bdd0d2;
+      --card: #14252b;
+      --border: #35515a;
+      --accent: #68d0c5;
+      --accent-text: #09201f;
+      --soft: #1b3739;
+      --focus: #ff9a7d;
+      --shadow: 2px 3px 0 #243c41;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,6 +79,46 @@
     }
 
     main { width: 100%; max-width: 420px; text-align: center; }
+
+    .theme-tools { display: flex; justify-content: flex-end; margin-bottom: 24px; }
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 48px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      font: 600 .875rem/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .theme-toggle[hidden] { display: none; }
+    .theme-toggle:hover { border-color: var(--accent); }
+    .theme-toggle-track {
+      position: relative;
+      flex: none;
+      width: 48px;
+      height: 28px;
+      border: 2px solid var(--accent);
+      border-radius: 99px;
+      background: var(--card);
+    }
+    .theme-toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: transform .15s ease;
+    }
+    .theme-toggle[aria-checked="true"] .theme-toggle-track { background: var(--accent); }
+    .theme-toggle[aria-checked="true"] .theme-toggle-thumb { background: var(--accent-text); transform: translateX(20px); }
 
     .avatar {
       width: 132px;
@@ -96,7 +163,7 @@
       transition: transform .15s ease, border-color .15s ease, background-color .15s ease;
     }
     .link:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--soft); }
-    .link:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .link:focus-visible, .theme-toggle:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
     .link:active { transform: translateY(0); }
 
     .link svg { width: 24px; height: 24px; flex: none; }
@@ -115,12 +182,19 @@
 
     @media (prefers-reduced-motion: reduce) {
       .link { transition: none; }
+      .theme-toggle-thumb { transition: none; }
       .link:hover, .link:active { transform: none; }
     }
   </style>
 </head>
 <body>
   <main>
+    <div class="theme-tools">
+      <button id="theme-toggle" class="theme-toggle" type="button" role="switch" aria-checked="false" hidden>
+        <span>Dunkler Modus</span>
+        <span class="theme-toggle-track" aria-hidden="true"><span class="theme-toggle-thumb"></span></span>
+      </button>
+    </div>
     <!-- Profilbild: Datei "test5.jpg" in denselben Ordner legen.
          Ohne Bild werden die Initialen angezeigt. -->
     <div class="avatar">
@@ -165,5 +239,41 @@
 
     <footer>&copy; Joshua-Liam Kiesch</footer>
   </main>
+  <script>
+    (() => {
+      const storageKey = 'josh-linktree-theme';
+      const root = document.documentElement;
+      const toggle = document.getElementById('theme-toggle');
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+      let preference = root.dataset.theme === 'light' || root.dataset.theme === 'dark'
+        ? root.dataset.theme : null;
+
+      const applyTheme = theme => {
+        root.dataset.theme = theme;
+        toggle.setAttribute('aria-checked', String(theme === 'dark'));
+        document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+          meta.content = theme === 'dark' ? '#0c161b' : '#f6f1e9';
+        });
+      };
+
+      applyTheme(preference ?? (systemTheme.matches ? 'dark' : 'light'));
+      toggle.addEventListener('click', () => {
+        preference = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(preference);
+        try { localStorage.setItem(storageKey, preference); }
+        catch { /* Der Schalter funktioniert auch ohne lokalen Speicher. */ }
+      });
+      toggle.hidden = false;
+
+      systemTheme.addEventListener('change', event => {
+        if (preference === null) applyTheme(event.matches ? 'dark' : 'light');
+      });
+      window.addEventListener('storage', event => {
+        if (event.key !== storageKey && event.key !== null) return;
+        preference = event.newValue === 'light' || event.newValue === 'dark' ? event.newValue : null;
+        applyTheme(preference ?? (systemTheme.matches ? 'dark' : 'light'));
+      });
+    })();
+  </script>
 </body>
 </html>

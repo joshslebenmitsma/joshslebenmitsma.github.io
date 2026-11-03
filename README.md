@@ -1,5 +1,3 @@
-# joshslebenmitsma.github.io
-[03.11.26, 19:37:26] Sebastian Sommer: <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="utf-8">

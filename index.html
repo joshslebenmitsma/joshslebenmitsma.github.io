@@ -5,20 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Joshua-Liam Kiesch</title>
   <meta name="description" content="Alle Links von Joshua-Liam Kiesch an einem Ort.">
+  <link rel="canonical" href="https://www.joshs-leben.de/links">
   <meta name="theme-color" content="#f6f1e9" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c161b" media="(prefers-color-scheme: dark)">
   <script>
-    // Die gespeicherte Auswahl vor dem ersten Zeichnen der Seite anwenden.
+    // GitHub bleibt als Einstieg erhalten; beide Ansichten verwenden dieselbe Domain.
     (() => {
-      try {
-        const theme = localStorage.getItem('josh-linktree-theme');
-        if (theme === 'light' || theme === 'dark') {
-          document.documentElement.dataset.theme = theme;
-          document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
-            meta.content = theme === 'dark' ? '#0c161b' : '#f6f1e9';
-          });
+      const validTheme = value => value === 'light' || value === 'dark';
+      if (location.hostname === 'joshslebenmitsma.github.io') {
+        const target = new URL('https://www.joshs-leben.de/links');
+        target.search = location.search;
+        target.hash = location.hash;
+        try {
+          const previousTheme = localStorage.getItem('joshs-theme') ?? localStorage.getItem('josh-linktree-theme');
+          if (validTheme(previousTheme)) target.searchParams.set('themeFallback', previousTheme);
+        } catch { /* Die Weiterleitung funktioniert auch ohne lokalen Speicher. */ }
+        location.replace(target.href);
+        return;
+      }
+
+      // Eine bisherige Linktree-Auswahl nur übernehmen, wenn noch keine gemeinsame besteht.
+      const url = new URL(location.href);
+      let theme = null;
+      try { theme = localStorage.getItem('joshs-theme'); } catch {}
+      if (!validTheme(theme)) {
+        theme = url.searchParams.get('themeFallback');
+        if (!validTheme(theme)) {
+          try { theme = localStorage.getItem('josh-linktree-theme'); } catch {}
         }
-      } catch { /* Ohne lokalen Speicher bleibt die Systemeinstellung aktiv. */ }
+        if (validTheme(theme)) {
+          try { localStorage.setItem('joshs-theme', theme); } catch {}
+        }
+      }
+      if (validTheme(theme)) {
+        document.documentElement.dataset.theme = theme;
+        document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+          meta.content = theme === 'dark' ? '#0c161b' : '#f6f1e9';
+        });
+      }
+      // Den einmaligen Übertragungswert aus der sichtbaren Adresse entfernen.
+      if (url.searchParams.has('themeFallback')) {
+        url.searchParams.delete('themeFallback');
+        try { history.replaceState(history.state, '', url.href); } catch {}
+      }
     })();
   </script>
   <style>
@@ -199,7 +228,7 @@
          Ohne Bild werden die Initialen angezeigt. -->
     <div class="avatar">
       <span aria-hidden="true">JK</span>
-      <img src="test5.jpg" alt="Joshua-Liam Kiesch" onerror="this.remove()">
+      <img src="/linktree/test5.jpg" alt="Joshua-Liam Kiesch" onerror="this.remove()">
     </div>
 
     <h1>Joshua-Liam Kiesch</h1>
@@ -241,7 +270,7 @@
   </main>
   <script>
     (() => {
-      const storageKey = 'josh-linktree-theme';
+      const storageKey = 'joshs-theme';
       const root = document.documentElement;
       const toggle = document.getElementById('theme-toggle');
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
